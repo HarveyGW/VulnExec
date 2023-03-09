@@ -115,15 +115,15 @@ do
     echo -ne "Progress: [$count/$total_ports] ($progress%)\r"
 
     # Search in Metasploit Framework
-    if [ -d "/usr/share/metasploit-framework/modules/exploits/" ]
+    # Search for exploits in Metasploit Framework
+    echo "Searching in Metasploit Framework:"
+    searchResults=$(msfconsole -q -x "search $port")
+    if [ -n "$searchResults" ]
     then
-        exploits=$(find /usr/share/metasploit-framework/modules/exploits/ -type f -name '*.rb' -exec grep -H -i -e "CVE-\|MS" {} + | grep -i -l $port)
-        if [ -n "$exploits" ]
-        then
-            echo -e "\e[41m$exploits\e[0m"  # Highlight the exploits found in Metasploit Framework with a red background
-            exploitsFound=true
-        fi
+        echo "$searchResults" | awk -v pattern="($port)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
     fi
+
+    
 
     # Search in other databases (e.g. Exploit-DB)
     echo "Searching in Exploit-DB:"
