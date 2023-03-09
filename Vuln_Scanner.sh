@@ -2,6 +2,11 @@
 
 sudo apt update && sudo apt install -y $(cat dependencies.txt)
 
+# Fix for "stty: 'standard input': Inappropriate ioctl for device" error
+if [ ! -t 0 ]; then
+    exec < /dev/tty
+fi
+
 clear
 
 echo "
