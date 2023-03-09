@@ -48,7 +48,7 @@ esac
 done
 
 # Show help message if -h or invalid command is entered
-if [[ "$help" == "true" ]]
+if [[ "$help" == "true" || -z "$IP" ]]
 then
     echo "Usage: ./vuln_scan.sh [-i IP_ADDRESS] [-l|-q] [-h]"
     echo "-i | --ip       : IP address of target to scan (required)"
@@ -58,17 +58,12 @@ then
     exit
 fi
 
-# Prompt user for input if IP address not provided as an argument
-if [[ -z "$IP" ]]
-then
-    read -p "Enter IP: " IP
-fi
-
 # Prompt user for input if loud/quiet scan option not provided as an argument
 if [[ -z "$lq" ]]
 then
     read -p "Loud or quiet scan (l/q)? " lq
 fi
+
 # Validate user input
 if [[ ! $IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
 then
