@@ -1,5 +1,14 @@
 #!/bin/bash
 
+echo "
+ ____   ____    .__           ___________                     
+\   \ /   /_ __|  |   ____   \_   _____/__  ___ ____   ____  
+ \   Y   /  |  \  |  /    \   |    __)_\  \/  // __ \_/ ___\ 
+  \     /|  |  /  |_|   |  \  |        \>    <\  ___/\  \___ 
+   \___/ |____/|____/___|  / /_______  /__/\_ \\___  >\___  >
+                         \/          \/      \/    \/     \/ 
+"
+
 # Check if user has necessary permissions
 if [ "$EUID" -ne 0 ]
 then 
@@ -26,12 +35,28 @@ case $key in
     lq="q"
     shift
     ;;
+    -h|--help)
+    help="true"
+    shift
+    ;;
     *)    # unknown option
     echo "Invalid option: $key"
-    exit
+    help="true"
+    shift
     ;;
 esac
 done
+
+# Show help message if -h or invalid command is entered
+if [[ "$help" == "true" ]]
+then
+    echo "Usage: ./vuln_scan.sh [-i IP_ADDRESS] [-l|-q] [-h]"
+    echo "-i | --ip       : IP address of target to scan (required)"
+    echo "-l | --loud     : Perform loud scan (more aggressive, more likely to be detected)"
+    echo "-q | --quiet    : Perform quiet scan (less aggressive, less likely to be detected)"
+    echo "-h | --help     : Display this help message"
+    exit
+fi
 
 # Prompt user for input if IP address not provided as an argument
 if [[ -z "$IP" ]]
@@ -111,11 +136,13 @@ do
     fi
 
     # Update progress bar
-    percentage=$((current_port*100/num_ports))
-    printf "["
-    for ((i=0; i<percentage; i+=2)); do printf "#"; done
-    for ((i=percentage; i<100; i+=2)); do printf " "; done
-    printf "] $percentage%%\r"
+percentage=$((count*100/total_ports))
+printf "["
+for ((i=0; i<percentage; i+=2)); do printf "#"; done
+for ((i=percentage; i<100; i+=2)); do printf " "; done
+printf "] $percentage%%\r"
+
+
 
     ((current_port++))
 done <<< "$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g')"
