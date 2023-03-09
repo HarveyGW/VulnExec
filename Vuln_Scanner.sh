@@ -127,7 +127,7 @@ do
 
     # Search in other databases (e.g. Exploit-DB)
     echo "Searching in Exploit-DB:"
-    searchResults=$(searchsploit --colour -t $port $(grep -oP '(?<=^\|\s)\w+' nmap-scan.txt | tr '\n' ',' | sed 's/,$//'))
+    searchResults=$(searchsploit --colour -t 10 -r -t $port $(grep -oP '(?<=^\|\s)\w+' nmap-scan.txt | tr '\n' ',' | sed 's/,$//') | awk 'NR>1 {print $6}' | sort -u)
     if [ -n "$searchResults" ]
     then
         echo "$searchResults"
