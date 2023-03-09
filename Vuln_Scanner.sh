@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt update && sudo apt install -y $(cat dependencies.txt)
+
 echo "
 ____   ____    .__           ___________                     
 \   \ /   /_ __|  |   ____   \_   _____/__  ___ ____   ____  
