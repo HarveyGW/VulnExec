@@ -120,14 +120,14 @@ do
         exploits=$(find /usr/share/metasploit-framework/modules/exploits/ -type f -name '*.rb' -exec grep -H -i -e "CVE-\|MS" {} + | grep -i -l $port)
         if [ -n "$exploits" ]
         then
-            echo "$exploits"
+            echo -e "\e[41m$exploits\e[0m"  # Highlight the exploits found in Metasploit Framework with a red background
             exploitsFound=true
         fi
     fi
 
     # Search in other databases (e.g. Exploit-DB)
     echo "Searching in Exploit-DB:"
-    highestExploit=$(grep -oP '(?<=Exploit-DB:\s{2})\d+' searchResults.txt | awk '{print $0" "$(getline < "searchsploit.csv")}' | sort -nrk 2,2 | head -n 1 | awk '{print $1}')
+    searchResults=$(searchsploit --colour -t $port $(grep -oP '(?<=^\|\s)\w+' nmap-scan.txt | tr '\n' ',' | sed 's/,$//'))
     if [ -n "$searchResults" ]
     then
         echo "$searchResults"
@@ -135,16 +135,15 @@ do
     fi
 
     # Update progress bar
-percentage=$((count*100/total_ports))
-printf "["
-for ((i=0; i<percentage; i+=2)); do printf "#"; done
-for ((i=percentage; i<100; i+=2)); do printf " "; done
-printf "] $percentage%%\r"
-
-
+    percentage=$((count*100/total_ports))
+    printf "["
+    for ((i=0; i<percentage; i+=2)); do printf "#"; done
+    for ((i=percentage; i<100; i+=2)); do printf " "; done
+    printf "] $percentage%%\r"
 
     ((current_port++))
 done <<< "$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g')"
+
 
 if [ $exploitsFound = false ]
 then
