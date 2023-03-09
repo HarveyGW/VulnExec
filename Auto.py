@@ -31,13 +31,13 @@ if not re.match(r"^[lq]$", lq):
 print("Scanning for vulnerabilities...")
 if lq == "l":
     vuln_scan_result = subprocess.run(
-        ["nmap", "-sV", "-sS", "--script", "vuln", "-T5", "-oG", "-Pn", "nmap-scan.txt", ip],
+        ["nmap", "-sV", "-sS", "--script", "vuln", "-T5"," -Pn", "-oG", "nmap-scan.txt", ip],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
 else:
     vuln_scan_result = subprocess.run(
-        ["nmap", "-sV", "-sS", "--script", "vuln", "-T1", "-oG", "-Pn", "nmap-scan.txt", ip],
+        ["nmap", "-sV", "-sS", "--script", "vuln", "-T1", "-Pn", "-oG", "nmap-scan.txt", ip],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -47,7 +47,7 @@ with open("nmap-scan.txt", "r") as f:
     open_ports = []
     for line in f:
         if "Ports: " in line:
-            open_ports = re.findall(r"(\d+)/(tcp|udp)\s+(\w+)\s+(\S+)\s+", line)
+            open_ports = re.findall(r"(\d+)/(tcp|udp)\s+(\w+)\s+([a-zA-Z0-9.,_:()/-]+)", line)
             break
 
     if not open_ports:
@@ -103,7 +103,7 @@ for port, protocol, service, version in open_ports:
             print(exploits.stdout.decode("utf-8"))
             exploits_found = True
 
-    # Search in other databases (e.g. Exploit-DB)
+        # Search in other databases (e.g. Exploit-DB)
     print("Searching in Exploit-DB:")
     search_results = subprocess.run(
         [
