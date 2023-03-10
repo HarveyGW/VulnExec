@@ -114,7 +114,7 @@ fi
 
 # Show brief output of vuln script results
 echo "Vulnerability scan results:"
-grep -oP '(CVE-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u
+grep -oP '(CVE-\d+-\d+|ms\d+-\d+)' nmap-scan.txt | sort -u
 
 # Search for exploits in multiple databases
 echo "Searching for exploits..."
