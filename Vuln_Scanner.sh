@@ -1,6 +1,7 @@
 #!/bin/bash
 export TERM=dumb
 
+apt update > /dev/null
 apt install pv > /dev/null
 
 # Redirect input to the read command from /dev/tty to prevent stty errors
