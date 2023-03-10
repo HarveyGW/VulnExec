@@ -137,9 +137,11 @@ do
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
     if [ -n "$searchResults" ]
     then
+        echo "TEST 1"
         exploitCount=$(echo "$searchResults" | awk '/exploits/ { print $3 }')
         if [ "$exploitCount" -gt 0 ]
         then
+            echo "TEST 2"
             # If more than one exploit is found, prompt the user to select an option
             if [ "$exploitCount" -gt 1 ]
             then
