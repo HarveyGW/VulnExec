@@ -36,12 +36,6 @@ then
     exit
 fi
 
-# Install dependencies with progress bar
-echo "Installing dependencies..."
-apt update > /dev/null
-cat dependencies.txt | xargs -L1 -I {} sh -c 'echo {}; apt install -y {} 2>&1 | pv -t -i 2 -e -b >/dev/null'
-echo "Dependencies installed successfully."
-
 # Parse command line arguments
 while [[ $# -gt 0 ]]
 do
