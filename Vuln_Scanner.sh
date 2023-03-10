@@ -139,7 +139,8 @@ do
     if [ -n "$searchResults" ]
     then
         echo "TEST 1"
-        exploitCount=$(echo "$searchResults" | awk '/exploits/ { print $3 }')
+        # Extract the highest number in the # column
+        exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
         if [ "$exploitCount" -gt 0 ]
         then
@@ -149,12 +150,12 @@ do
             then
                 echo "Multiple exploits found in Metasploit Framework."
                 echo "Please select an exploit to use:"
-                echo "$searchResults" | awk '/exploits/ { print $2 }' | nl -s ') '
+                echo "$searchResults" | awk 'NR>3 { print $3 }' | nl -s ') '
                 read -p "Enter exploit number: " exploitNum
-                chosenExploit=$(echo "$searchResults" | awk '/exploits/ { print $2 }' | sed -n "${exploitNum}p")
+                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }' | sed -n "${exploitNum}p")
             else
                 # If only one exploit is found, set it as the chosen exploit
-                chosenExploit=$(echo "$searchResults" | awk '/exploits/ { print $2 }')
+                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }')
             fi
 
             echo "Using exploit $chosenExploit"
@@ -162,6 +163,8 @@ do
         else
             echo "No exploits found in Metasploit Framework for $vuln"
         fi
+    else
+        echo "Search Results is empty"
     fi
 
 
