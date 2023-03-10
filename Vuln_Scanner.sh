@@ -1,11 +1,17 @@
 #!/bin/bash
 export TERM=dumb
 
-apt update > /dev/null
-apt install pv > /dev/null
+# Update apt and install dependencies
+sudo apt update
+sudo apt install -y $(cat dependencies.txt)
 
-# Redirect input to the read command from /dev/tty to prevent stty errors
-exec < /dev/tty
+# Check for missing public keys and retrieve them
+missing_key=$(sudo apt-key list | grep -B 1 -A 1 "NO_PUBKEY" | sed -n 's/.*NO_PUBKEY //p' | uniq)
+if [[ -n "$missing_key" ]]; then
+    for key in $missing_key; do
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key"
+    done
+fi
 
 clear
 
