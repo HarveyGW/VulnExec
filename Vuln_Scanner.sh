@@ -140,7 +140,7 @@ do
     then
         echo "TEST 1"
         # Extract the highest number in the # column
-        exploitCount=$(echo "$searchResults" | awk 'NR>1 { print $1 }' | sort -nr | head -1)
+        exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
         if [ "$exploitCount" -gt 0 ]
         then
