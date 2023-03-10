@@ -101,9 +101,9 @@ fi
 echo "Scanning for vulnerabilities..."
 if [ $lq = "l" ]
 then
-    vulnScanResult=$(nmap -sV -sS --script vuln -T5 -oG nmap-scan.txt $IP)
+    vulnScanResult=$(nmap -sV -sS --script vuln -T5 -oN nmap-scan.txt $IP)
 else
-    vulnScanResult=$(nmap -sV -sS --script vuln -T1 -oG nmap-scan.txt $IP)
+    vulnScanResult=$(nmap -sV -sS --script vuln -T1 -oN nmap-scan.txt $IP)
 fi
 
 # Check if there are any open ports
