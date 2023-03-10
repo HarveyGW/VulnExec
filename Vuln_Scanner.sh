@@ -114,7 +114,7 @@ fi
 
 # Show brief output of vuln script results
 echo "Vulnerability scan results:"
-grep -oP 'CVE-\d+|MS\d+-\d+' nmap-scan.txt | sort -u
+grep -oP 'CVE-\d+-\d|MS\d+-\d+' nmap-scan.txt | sort -u
 
 # Search for exploits in multiple databases
 echo "Searching for exploits..."
@@ -173,4 +173,3 @@ if [[ $executeExploits =~ ^[yY]$ ]]; then
         msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
     done <<< "$(grep -H -i -e 'CVE-\S\+\|MS\d\+-\S\+' nmap-scan.txt)"
 fi
-
