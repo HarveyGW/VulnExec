@@ -139,6 +139,7 @@ do
     then
         echo "TEST 1"
         exploitCount=$(echo "$searchResults" | awk '/exploits/ { print $3 }')
+        echo "$exploitCount"
         if [ "$exploitCount" -gt 0 ]
         then
             echo "TEST 2"
