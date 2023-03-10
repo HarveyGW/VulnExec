@@ -1,5 +1,7 @@
 #!/bin/bash
 
+apt install pv > /dev/null
+
 echo -e "\033[31m
 
  ██▒   █▓ █    ██  ██▓     ███▄    █    ▓█████ ▒██   ██▒▓█████  ▄████▄  
