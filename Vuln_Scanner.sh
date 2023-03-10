@@ -120,7 +120,7 @@ grep -oP '(CVE-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u
 echo "Searching for exploits..."
 echo "Metasploit Framework:"
 # Count the number of unique CVE and MS values found in the nmap-scan.txt file
-total_vulns=$(grep -oP 'CVE-\d+|MS\d+-\d+' nmap-scan.txt | sort -u | wc -l)
+total_vulns=$(grep -oP '(CVE-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u | wc -l)
 
 # Loop through each CVE and MS value found and search for exploits
 count=0
