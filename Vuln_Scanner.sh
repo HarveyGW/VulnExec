@@ -122,7 +122,7 @@ echo "Metasploit Framework:"
 exploitsFound=false
 total_ports=$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g' | wc -l)
 count=0
-while read -r port state
+while read -r port state cve ms
 do
     # Update the progress bar
     count=$((count+1))
@@ -130,16 +130,16 @@ do
     echo -ne "Progress: [$count/$total_ports] ($progress%)\r"
 
     # Search in Metasploit Framework
-    echo "Searching in Metasploit Framework:"
-    searchResults=$(msfconsole -q -x "search $port" < /dev/null)
+    echo "Searching in Metasploit Framework for $cve..."
+    searchResults=$(msfconsole -q -x "search cve:$cve or ms:$ms" < /dev/null)
     if [ -n "$searchResults" ]
     then
-        echo "$searchResults" | awk -v pattern="($port)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
+        echo "$searchResults" | awk -v pattern="($cve|$ms)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
     fi
 
     # Search in other databases (e.g. Exploit-DB)
-    echo "Searching in Exploit-DB:"
-    searchResults=$(searchsploit --colour -t $port $(grep -oP '(?<=^\|\s)\w+' nmap-scan.txt | tr '\n' ',' | sed 's/,$//'))
+    echo "Searching in Exploit-DB for $cve..."
+    searchResults=$(searchsploit --colour -w "$cve" | grep -v 'Unverified' | grep -v 'EDB-ID')
     if [ -n "$searchResults" ]
     then
         echo "$searchResults"
@@ -154,7 +154,7 @@ do
     printf "] $percentage%%\r"
 
     ((current_port++))
-done <<< "$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g')"
+done <<< "$(grep -oP '(?<=Ports: ).*(?=\))' nmap-scan.txt | sed 's/ /\'$'\n/g' | sed 's/,//g' | while read -r port state; do echo "$port $state $(grep -oP 'CVE-\d{4}-\d{4}|MS\d{2}-\d{3}' nmap-scan.txt)"; done)"
 
 if [ $exploitsFound = false ]
 then
