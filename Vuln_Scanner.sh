@@ -132,7 +132,7 @@ do
 
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework:"
-    searchResults=$(msfconsole -q -x "search $port")
+    searchResults=$(msfconsole -q -x "search $port" < /dev/null)
     if [ -n "$searchResults" ]
     then
         echo "$searchResults" | awk -v pattern="($port)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
