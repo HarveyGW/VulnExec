@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt update && sudo apt install -y $(cat dependencies.txt)
+sudo apt update && sudo apt install -y $(cat dependencies.txt) > /dev/null
 
 clear
 
