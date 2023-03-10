@@ -135,11 +135,12 @@ do
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework for $vuln..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
+    echo "Search Results: $searchResults"
     if [ -n "$searchResults" ]
     then
         echo "TEST 1"
         exploitCount=$(echo "$searchResults" | awk '/exploits/ { print $3 }')
-        echo "$exploitCount"
+        echo "Exploit Count: $exploitCount"
         if [ "$exploitCount" -gt 0 ]
         then
             echo "TEST 2"
@@ -162,6 +163,7 @@ do
             echo "No exploits found in Metasploit Framework for $vuln"
         fi
     fi
+
 
 
     # Search in other databases (e.g. Exploit-DB)
