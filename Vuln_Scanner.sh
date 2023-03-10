@@ -1,5 +1,4 @@
 #!/bin/bash
-export TERM=dumb
 
 # Update apt and install dependencies
 sudo apt update
@@ -13,7 +12,7 @@ if [[ -n "$missing_key" ]]; then
     done
 fi
 
-tput reset
+clear
 
 echo -e "\033[31m
 
