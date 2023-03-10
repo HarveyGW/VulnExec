@@ -1,4 +1,5 @@
 #!/bin/bash
+export TERM=dumb
 
 apt install pv > /dev/null
 
