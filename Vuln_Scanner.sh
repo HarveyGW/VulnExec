@@ -13,7 +13,7 @@ if [[ -n "$missing_key" ]]; then
     done
 fi
 
-clear
+tput reset
 
 echo -e "\033[31m
 
