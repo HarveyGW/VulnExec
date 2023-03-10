@@ -137,8 +137,29 @@ do
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
     if [ -n "$searchResults" ]
     then
-        echo "$searchResults" | awk -v pattern="($vuln)" 'BEGIN { FS="|" } /exploits/ && ( $0 ~ pattern ) { printf "\033[41m%s\033[0m\n", $2; exploitsFound=true }'
+        exploitCount=$(echo "$searchResults" | awk '/exploits/ { print $3 }')
+        if [ "$exploitCount" -gt 0 ]
+        then
+            # If more than one exploit is found, prompt the user to select an option
+            if [ "$exploitCount" -gt 1 ]
+            then
+                echo "Multiple exploits found in Metasploit Framework."
+                echo "Please select an exploit to use:"
+                echo "$searchResults" | awk '/exploits/ { print $2 }' | nl -s ') '
+                read -p "Enter exploit number: " exploitNum
+                chosenExploit=$(echo "$searchResults" | awk '/exploits/ { print $2 }' | sed -n "${exploitNum}p")
+            else
+                # If only one exploit is found, set it as the chosen exploit
+                chosenExploit=$(echo "$searchResults" | awk '/exploits/ { print $2 }')
+            fi
+
+            echo "Using exploit $chosenExploit"
+            msfconsole -q -x "use $chosenExploit" < /dev/null
+        else
+            echo "No exploits found in Metasploit Framework for $vuln"
+        fi
     fi
+
 
     # Search in other databases (e.g. Exploit-DB)
     echo "Searching in Exploit-DB for $vuln..."
