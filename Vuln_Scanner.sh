@@ -2,6 +2,9 @@
 
 apt install pv > /dev/null
 
+# Redirect input to the read command from /dev/tty to prevent stty errors
+exec < /dev/tty
+
 echo -e "\033[31m
 
  ██▒   █▓ █    ██  ██▓     ███▄    █    ▓█████ ▒██   ██▒▓█████  ▄████▄  
