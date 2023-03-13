@@ -4,7 +4,8 @@
 sudo apt update
 sudo apt install -y $(cat dependencies.txt)
 
-exploitsFound=0
+declare -i exploitsFound=0
+
 
 # Check for missing public keys and retrieve them
 missing_key=$(sudo apt-key list | grep -B 1 -A 1 "NO_PUBKEY" | sed -n 's/.*NO_PUBKEY //p' | uniq)
