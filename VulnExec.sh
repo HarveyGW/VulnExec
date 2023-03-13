@@ -141,7 +141,6 @@ while read vuln; do
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework for $vuln..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
-    echo "Search Results: $searchResults"
     if [ -n "$searchResults" ]
     then
         # Extract the highest number in the # column
