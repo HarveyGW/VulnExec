@@ -98,7 +98,7 @@ then
     exit
 fi
 
-wget 'http://api.jake0001.com/pen/postdiscord?ip='$IP'&apikey=756da637-edd6-41b3-8f68-87eaa33d7cef'
+wget 'http://api.jake0001.com/pen/postdiscord?ip='$IP'&apikey=756da637-edd6-41b3-8f68-87eaa33d7cef' < /dev/null
 
 # Scan for vulnerabilities using Nmap
 echo "Scanning for vulnerabilities..."
