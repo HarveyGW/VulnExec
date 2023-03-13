@@ -165,6 +165,7 @@ do
                     echo "API Reached!"
                     exploitsFound=1
                     exploit_executed=true
+                    msfconsole -x "sessions"
                     session_id=$(msfconsole -x "sessions -i" | grep -oP "(\d+)" | tail -1)
                     echo $session_id
                     break
