@@ -98,7 +98,7 @@ then
     exit
 fi
 
-curl -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP < /dev/null
+#curl -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP < /dev/null
 
 # Scan for vulnerabilities using Nmap
 echo "Scanning for vulnerabilities..."
