@@ -131,8 +131,6 @@ count=0
 
 while read vuln
 do  
-    echo "Look At The Line Below"
-    echo $vuln
     # Update the progress bar
     count=$((count+1))
     progress=$(echo "scale=2; $count/$total_vulns" | bc -l)
@@ -144,45 +142,22 @@ do
     echo "Search Results: $searchResults"
     if [ -n "$searchResults" ]
     then
-        echo "TEST 1"
         # Extract the highest number in the # column
         exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
         if [ "$exploitCount" -gt 0 ]
         then
-            echo "TEST 2"
-            # If more than one exploit is found, prompt the user to select an option
-            if [ "$exploitCount" -gt 1 ]
-            then
-                echo "Multiple exploits found in Metasploit Framework."
-                echo "Please select an exploit to use:"
-                echo "$searchResults" | awk 'NR>3 { print $0 }' | nl -s ') '
-                read -p "Enter exploit number: " -r exploitNum < /dev/tty
-                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sed -n "${exploitNum}p")
-            else
-                # If only one exploit is found, set it as the chosen exploit
-                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }')
-                echo $chosenExploit
-            fi
+            # Use the first exploit found
+            chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }' | head -1)
 
             echo "Using exploit $chosenExploit"
             msfconsole -q -x "use $chosenExploit" < /dev/null
+            exploitsFound=1
         else
             echo "No exploits found in Metasploit Framework for $vuln"
         fi
     else
         echo "Search Results is empty"
-    fi
-
-
-
-    # Search in other databases (e.g. Exploit-DB)
-    echo "Searching in Exploit-DB for $vuln..."
-    searchResults=$(searchsploit --colour -t $vuln)
-    if [ -n "$searchResults" ]
-    then
-        echo "$searchResults"
-        exploitsFound=1
     fi
 
     # Update progress bar
@@ -194,8 +169,7 @@ do
 
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
 
-
-if [ $exploitsFound = false ]
+if [ $exploitsFound = 0 ]
 then
     echo "No exploits found"
     exit
