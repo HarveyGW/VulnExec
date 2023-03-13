@@ -146,35 +146,37 @@ do
         exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
         if [ "$exploitCount" -gt 0 ]
-then
-    # Use the first exploit found
-    chosenExploits=$(echo "$searchResults" | awk 'NR>3 && $1 ~ /^[0-9]+$/ && $2 ~ /^exploit\// { print $2 }')
-
-    # Split the chosenExploits into an array
-    read -ra exploits <<< "$chosenExploits"
-
-    # Loop through the exploits and attempt to use them
-    for exploit in "${exploits[@]}"; do
-        echo "Using exploit $exploit"
-        msfconsole -q -x "use $exploit" < /dev/null
-        if [ $? -eq 0 ]
         then
-            echo "Exploited vulnerability $vuln using exploit $exploit"
-            exploitsFound=1
-            break
+            # Use the first exploit found
+            chosenExploits=$(echo "$searchResults" | awk 'NR>3 && $1 ~ /^[0-9]+$/ && $2 ~ /^exploit\// { print $2 }')
+
+            # Split the chosenExploits into an array
+            read -ra exploits <<< "$chosenExploits"
+
+            # Loop through the exploits and attempt to use them
+            for exploit in "${exploits[@]}"; do
+                echo "Using exploit $exploit"
+                msfconsole -q -x "use $exploit" < /dev/null
+                if [ $? -eq 0 ]
+                then
+                    echo "Exploited vulnerability $vuln using exploit $exploit"
+                    exploitsFound=1
+                    break
+                else
+                    echo "Failed to exploit vulnerability $vuln using exploit $exploit"
+                fi
+            done
+
+            if [ "$exploitsFound" -eq 0 ]
+            then
+                echo "Failed to exploit vulnerability $vuln using any of the available exploits"
+            fi
         else
-            echo "Failed to exploit vulnerability $vuln using exploit $exploit"
+            echo "No exploits found in Metasploit Framework for $vuln"
         fi
-    done
-
-    if [ "$exploitsFound" -eq 0 ]
-    then
-        echo "Failed to exploit vulnerability $vuln using any of the available exploits"
+    else
+        echo "Search Results is empty"
     fi
-else
-    echo "No exploits found in Metasploit Framework for $vuln"
-fi
-
 
     # Update progress bar
     percentage=$((count*100/total_vulns))
@@ -184,6 +186,7 @@ fi
     printf "] $percentage%%\r"
 
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
+
 
 if [ $exploitsFound = 0 ]
 then
