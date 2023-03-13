@@ -154,12 +154,13 @@ do
             then
                 echo "Multiple exploits found in Metasploit Framework."
                 echo "Please select an exploit to use:"
-                echo "$searchResults" | awk 'NR>3 { print $3 }' | nl -s ') '
-                read -p "Enter exploit number: " exploitNum
-                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }' | sed -n "${exploitNum}p")
+                echo "$searchResults" | awk 'NR>3 { print $0 }' | nl -s ') '
+                read -p "Enter exploit number: " -r exploitNum < /dev/tty
+                chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sed -n "${exploitNum}p")
             else
                 # If only one exploit is found, set it as the chosen exploit
                 chosenExploit=$(echo "$searchResults" | awk 'NR>3 { print $3 }')
+                echo $chosenExploit
             fi
 
             echo "Using exploit $chosenExploit"
