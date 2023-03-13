@@ -129,8 +129,10 @@ total_vulns=$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan
 # Loop through each CVE and MS value found and search for exploits
 count=0
 
-while read -r vuln
-do
+while read vuln
+do  
+    echo "Look At The Line Below"
+    echo $vuln
     # Update the progress bar
     count=$((count+1))
     progress=$(echo "scale=2; $count/$total_vulns" | bc -l)
