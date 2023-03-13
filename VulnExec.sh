@@ -202,7 +202,7 @@ fi
 read -p "Would you like to execute discovered exploits (y/n)? " executeExploits
 if [[ $executeExploits =~ ^[yY]$ ]]; then
     while read -r line
-    echo "\033[31m $line \033[0m"
+    echo "\033[31m$line\033[0m"
     do
         exploitPath=$(echo "$line" | cut -d ":" -f 1)
         exploitName=$(echo "$line" | cut -d ":" -f 2)
