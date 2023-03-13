@@ -156,7 +156,7 @@ do
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
                 echo "Using exploit $exploit"
-                msfconsole -q -x "use $exploit" < /dev/null
+                msfconsole -q -x "use $exploit"
                 if [ $? -eq 0 ]
                 then
                     echo "Exploited vulnerability $vuln using exploit $exploit"
