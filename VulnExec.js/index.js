@@ -11,8 +11,8 @@ const { colorOptions } = require('spinnies/utils.js');
 
 // global variables
 const cves = [];
-var ms = [];
-var ip = '65.108.249.99'
+const ms = [];
+var ip = '10.129.250.42'
 
 const logo = `
 
@@ -35,6 +35,7 @@ fs.writeFile('nmap.txt', '', (err) => {
 });
 console.log(chalk.redBright(logo));
 
+// REMOVE THE COMMENT HERE
 setTimeout(() => {
     log.vuln('VULN EXEC LOADED');
     nmap_scan(ip);
@@ -44,16 +45,15 @@ nmap_scan = async (ip) => {
     const nmap = spawn('nmap', ['-sS', '-sV', '-T5','--script','vuln', ip]);
     nmap.stdout.on('data', (data) => {
         data = data.toString();
+
         if(data.includes('Starting Nmap')) {
-            log.info('Nmap Scan Started');
             spinner.add('nmap', {text: 'Nmap Scan Started', color: 'red'});
         } else if(data.includes('Nmap done')) {
-            spinner.remove('nmap');
-            log.info('Nmap Scan Completed');
+            spinner.succeed('nmap', {text: 'Nmap Scan Completed', color: 'red'});
             spinner.add('get_data', {text: 'Getting Vulnerabilities', color: 'red'});
             get_vuln();
         }  else {
-            log.info(data);
+            
         }
         fs.appendFile('nmap.txt', data, (err) => {
             if(err) {
@@ -75,8 +75,9 @@ const get_vuln = async () => {
     const cve = data.match(/CVE-\d{4}-\d{4,7}/g);
     const ms = data.match(/MS\d{2}-\d{3}/g);
 
-    if(cve) {
+    if(cve && ms) {
         log.vuln('CVEs Found: ' + cve);
+        log.vuln('MS Found: ' + ms);
         cves.push(cve);
 
     }
@@ -86,21 +87,15 @@ const get_vuln = async () => {
     }
 
     if(cves.length > 0 || ms.length > 0) {
-        spinner.remove('get_data');
-        log.vuln('Vulnerabilities Found');
+        spinner.succeed('get_data', {text: 'Vulnerabilities Found', color: 'red'});
 
         if (cves.length > 0) {
             spinner.add('cve', {text: 'Exploiting CVEs', color: 'red'});
             exploit(ip);
         }
-
-        if (ms.length > 0) {
-            spinner.add('ms', {text: 'Exploiting MS', color: 'red'});
-            exploit(ip);
-        }
         
     } else {
-        spinner.remove('data');
+        spinner.fail('data', {text: 'No Vulnerabilities Found', color: 'red'});
         log.info('No Vulnerabilities Found');
     }
 
@@ -108,22 +103,24 @@ const get_vuln = async () => {
 
 //msf exploit 
 const exploit = async (ip) => {
-    //const msf_param = 'msfconsole', ['-q', '-x']
     for (let i = 0; i < cves.length; i++) {
-        const cve = cves[i]
-
-        const msf = spawn('msfconsole', ['-x', `search ${cve}`])
-        msf.stdout.on('data', (data) => {
-            log.info(data);
-        });
-
-        msf.stderr.on('data', (data) => {
-            log.error(data);
+        const exploit = spawn('msfconsole', ['-q']);
+        exploit.stdin.write(`search ${cves[0]}\n`);
+        exploit.stdout.on('data', (data) => {
+            if (data.includes('No results')) {
+                spinner.fail('cve', {text: 'No Exploit Found', color: 'red'});
+                exploit.kill();
+            } else {
+                log.info(data);
+            }
+        })
+        exploit.stderr.on('data', (data) => {
+            data = data.toString();
+            if (data.includes('stty')) {
+                return
+            } else {
+                log.error(data);
+            }
         })
     }
 }
-
-
-
-
-
