@@ -6,6 +6,7 @@ const log = require('./log.js')
 const util = require('./spinnier.js')
 const msf = require('./msf_modules.js')
 const { type } = require('os')
+const { exec } = require('child_process')
 
 const fetch_vuln = async () => {
     util.spinner.add('vuln_find', {text: 'Looking for Vulnerabilities', spinnerColor: 'redBright'})
@@ -14,7 +15,6 @@ const fetch_vuln = async () => {
     const ms = data.match(/ms\d{2}-\d{3}/g)
 
     let combo = []
-    let exploitable = []
 
 
 
@@ -34,21 +34,13 @@ const fetch_vuln = async () => {
     
     if (combo.length > 0) {
         combo = new Set(combo)
-        util.spinner.succeed('vuln_find', {text: 'Found Vulnerabilities', succeedColor: 'redBright'})
-        combo.forEach(async (element )=>{
-            console.log(type(element))
-            console.log(log.chalk.redBright(element))
-            await msf.search_vuln(element).then((result) => {
-                if (result) {
-                    exploitable.push(element)
-                    log.vuln(element + ' is exploitable')
-                } else {
-                    log.vuln(element + ' is not exploitable')
-                }
-            })        
-        })
+        util.spinner.succeed('vuln_find', {text: 'Found Vulnerabilities', succeedColor: 'greenBright'})
+        log.divider()
+        exec('rm nmap.txt', (err, stdout, stderr) => {  if (err) { log.error(err) } })
+        combo.forEach(async (element )=>{ await msf.search_vuln(element)    })
 
     } else {
+        exec('rm nmap.txt', (err, stdout, stderr) => { if (err) { log.error(err) } })
         util.spinner.fail('vuln_find', {text: 'No Found Vulnerabilities', failColor: 'redBright'})
         process.exit()
     }

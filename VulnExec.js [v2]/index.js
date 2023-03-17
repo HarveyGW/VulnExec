@@ -29,6 +29,8 @@ startup = async function() {
         } else if (args.includes('-l')) {
             mode = 'loud'
             log.logo_message()
+            log.sig()
+            log.divider()
             nmap_scan.start(ip, mode)
             log.runtime(ip, mode)
         } else {

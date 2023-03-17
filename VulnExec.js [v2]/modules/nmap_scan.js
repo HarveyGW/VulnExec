@@ -29,11 +29,11 @@ const start = async (ip, mode) => {
         data = data.toString()
 
         if (data.includes('Starting Nmap')) {
-            util.spinner.add('nmap', {text: `Nmap Scan Started in ${mode} Mode on ${ip}`, spinnerColor: 'redBright'})
+            util.spinner.add('nmap', {text: `Vulnerability Scan Started in ${mode} Mode on ${ip}`, spinnerColor: 'redBright'})
         }
 
         if (data.includes('Nmap done')) {
-            util.spinner.succeed('nmap', {text: `Nmap Scan Completed Successfully on ${ip}`, succeedColor: 'greenBright'})
+            util.spinner.succeed('nmap', {text: `Vulnerability Scan Completed Successfully on ${ip}`, succeedColor: 'greenBright'})
             data_handler.fetch_vuln()
         }
 

@@ -47,8 +47,18 @@ const logo = `
       ░     ░         ░  ░         ░       ░  ░ ░    ░     ░  ░░ ░      
      ░                                                         ░        
 `;
-
 console.log(chalk.redBright(logo))
+}
+
+sig = () => {
+text = 'Created by ' + chalk.redBright('Hx') + chalk.white(' & ') + chalk.redBright('Jake0001-dev')
+licence = 'Licenced under the ' + chalk.redBright('MIT') + ' Licence'
+github = 'Github : ' + chalk.redBright('github.com/HarveyGW/VulnExec')
+
+console.log(text)
+console.log(licence)
+console.log(github)
+
 }
 
 const runtime = (ip, mode) => {
@@ -70,6 +80,10 @@ const log_string = string + ` ${ip} was scanned used ${mode} Mode`
  })
 }
 
+divider = () => {
+    console.log(chalk.redBright('\n--------------------------------\n'))
+}
+
 module.exports = {
     vuln,
     info,
@@ -77,5 +91,7 @@ module.exports = {
     help,
     logo_message,
     chalk,
-    runtime
+    runtime,
+    sig,
+    divider
 }
