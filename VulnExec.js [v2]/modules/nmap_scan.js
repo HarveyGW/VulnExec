@@ -6,6 +6,7 @@ const fs = require('fs')
 const log = require('./log.js')
 const util = require('./spinnier.js')
 const data_handler = require('./data_handler.js')
+const msf = require('./msf_modules')
 
 
 const start = async (ip, mode) => {

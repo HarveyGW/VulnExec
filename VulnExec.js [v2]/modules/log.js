@@ -1,7 +1,7 @@
 const chalk = require('chalk')
 const fs = require('fs')
 
-const logfile = '../logs/runtime.log'
+const logfile = 'runtime.log'
 vuln = (text) => {
     console.log(chalk.redBright('[ VULN EXEC ] ') + text)
 }

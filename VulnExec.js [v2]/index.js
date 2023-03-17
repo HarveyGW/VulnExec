@@ -48,6 +48,11 @@ startup = async function() {
     }
 }
 
+module.exports = {
+    ip,
+    local_interface
+}
+
 
 
 
