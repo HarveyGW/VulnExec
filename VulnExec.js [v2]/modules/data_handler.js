@@ -4,6 +4,7 @@ const fs = require('fs')
 // Modules
 const log = require('./log.js')
 const util = require('./spinnier.js')
+const msf = require('./msf_modules.js')
 
 const fetch_vuln = () => {
     util.spinner.add('vuln_find', {text: 'Looking for Vulnerabilities', spinnerColor: 'redBright'})
@@ -34,6 +35,8 @@ const fetch_vuln = () => {
         util.spinner.succeed('vuln_find', {text: 'Found Vulnerabilities', succeedColor: 'redBright'})
         combo.forEach(element =>{
             console.log(log.chalk.redBright(element))
+
+            //msf.search_vuln(element)
         })
     } else {
         util.spinner.fail('vuln_find', {text: 'No Found Vulnerabilities', failColor: 'redBright'})
