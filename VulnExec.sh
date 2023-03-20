@@ -197,11 +197,6 @@ exploit_executed=false
 session_id=""
 
 while read -r vuln; do
-    if [[ $vuln = *"Microsoft IIS"* ]]; then
-        version=$(echo $vuln | grep -oP '(?<=Microsoft IIS )([0-9]+\.[0-9]+)')
-        vuln="IIS $version"
-    fi
-
     # Search in Metasploit Framework
     echo -e "Searching in Metasploit Framework for ${Red}$vuln${NC}..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null 2>&1)
