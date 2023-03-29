@@ -188,7 +188,7 @@ grep -Eo '([Cc][Vv][Ee]-[0-9]+-[0-9]+)|([Mm][Ss][0-9]+-[0-9]+)|([0-9]{1,3}\.){3}
 #Ouputs Service Values
 echo -e "${Red}\n--------------------------------\n${NC}"
 echo -ne "${Blue}[ INFO ] Services Collected:${NC}"
-if [ "$1" == "-q" ]; then
+if [ "$lq" == "q" ]; then
 	grep 'open' nmap-scan.txt | awk -F" " '{for (i=5; i<=NF; i++) if ($i != "ttl" && $(i+1) != "ttl" && $i != "httpd" && $i != "127") printf $i" "; print ""}'
 else
 	sudo grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|[Cc][Vv][Ee]-[[:digit:]]+-[[:digit:]]+|ms[[:digit:]]+-[[:digit:]]+|[[:digit:]]+\/tcp.*open.*' nmap-scan.txt | awk '{print $3, $4, $5" "$6" "$7}' | sed 's/^[^ ]* //g' | sort -u | grep -v '^$'
@@ -197,7 +197,7 @@ echo -e "${Red}\n--------------------------------\n${NC}"
 
 
 total_vulns=$(grep -Eo '([Cc][Vv][Ee]-[0-9]+-[0-9]+)|([Mm][Ss][0-9]+-[0-9]+)|([0-9]{1,3}\.){3}[0-9]{1,3}' nmap-scan.txt | grep -vE '([0-9]{1,3}\.){3}[0-9]{1,3}' | awk '{print $1" "$2}' | sort -u)
-if [ "$1" == "-q" ]; then
+if [ "$lq" == "q" ]; then
     total_vulns+=$(grep 'open' nmap-scan.txt | awk -F" " '{for (i=5; i<=NF; i++) if ($i != "ttl" && $(i+1) != "ttl" && $i != "httpd" && $i != "127") printf $i" "; print ""}')
 else
 	total_vulns+=$(sudo grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}|[Cc][Vv][Ee]-[[:digit:]]+-[[:digit:]]+|ms[[:digit:]]+-[[:digit:]]+|[[:digit:]]+\/tcp.*open.*' nmap-scan.txt | awk '{print $3, $4, $5" "$6" "$7}' | sed 's/^[^ ]* //g' | sort -u | grep -v '^$')
