@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.imgur.com/f1kSNZq.png" />
+  <img src="https://i.imgur.com/aAnVKQi.png" />
 </p>
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg)](https://choosealicense.com/licenses/mit/)
