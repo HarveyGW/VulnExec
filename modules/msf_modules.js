@@ -2,9 +2,14 @@ const { spawn, exec } = require('child_process')
 const {chunksToLinesAsync, chomp} = require('@rauschma/stringio');
 const fs = require('fs')
 
+<<<<<<< Updated upstream
 var all_vuln = []
 
 var module_lists = []
+=======
+
+let module_lists = [];
+>>>>>>> Stashed changes
 // Import modules
 
 const main = require('../index')
@@ -29,7 +34,11 @@ search_vuln = async (vuln) => {
             const exploit1 = line.split('exploit/')[1]
             const exploit = exploit1.split(' ')[0]
             fs.appendFileSync('exploit.txt', line + '\n')
+<<<<<<< Updated upstream
             exploit_vuln(vuln, exploit)
+=======
+            await exploit_vuln(vuln, exploit)
+>>>>>>> Stashed changes
             const module_path = line.split('exploit/')[1].split(' ')[0]
             fs.appendFile('modules.txt', 'exploit/'+ module_path + '\n', (err) => {
                 if(err) {

@@ -2,3 +2,7 @@
 node_modules/.package-lock.json
 nmap.txt
 runtime.log
+<<<<<<< Updated upstream
+=======
+/.idea/
+>>>>>>> Stashed changes
