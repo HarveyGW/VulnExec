@@ -8,10 +8,10 @@ const msf_modules = require(`./modules/msf_modules.js`)
 const util = require('./modules/spinnier.js')
 
 // Global Variables 
-var ip = ''
-var mode = ''
-var local_interface = ''
-var args = []
+let ip = '';
+let mode = ''
+let local_interface = ''
+let args = []
 
 startup = async function() {
     process.argv.forEach((val, index) => {
@@ -24,14 +24,14 @@ startup = async function() {
         if (args.includes('-q')) {
             mode = 'quiet'
             log.logo_message()
-            nmap_scan.start(ip, mode)
+            await nmap_scan.start(ip, mode)
             log.runtime(ip, mode)
         } else if (args.includes('-l')) {
             mode = 'loud'
             log.logo_message()
             log.sig()
             log.divider()
-            nmap_scan.start(ip, mode)
+            await nmap_scan.start(ip, mode)
             log.runtime(ip, mode)
         } else {
             
