@@ -1,4 +1,0 @@
-nmap
-metasploit-framework
-exploitdb
-bc
