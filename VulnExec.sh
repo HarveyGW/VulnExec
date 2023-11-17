@@ -135,13 +135,6 @@ echo -e "Github : ${Red}github.com/HarveyGW/VulnExec"
 echo -e "${Red}\n--------------------------------\n${NC}"
 
 
-if curl -m 0 -X POST http://api.jake0001.com/pen/postdiscord?ip=$IP >/dev/null 2>&1 &
-then
-    echo -e "${Blue}[ INFO ] API Reached${NC}"
-else
-    echo -e "${Red}[ ERROR ] API Could Not Be Reached${NC}"
-fi
-
 # Scan for vulnerabilities using Nmap
 prev_percentage=-1
 
